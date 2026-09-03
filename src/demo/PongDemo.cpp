@@ -274,7 +274,7 @@ void Pong::playGeneratedSound(MIX_Audio* _sound) {
 }
 
 
-GameObject::GameObject(int _x, int _y, int _w, int _h, Velocity2 _v) : x(_x), y(_y), w(_w), h(_h), velocity(_v), rect(x,y,w,h)
+GameObject::GameObject(int _x, int _y, int _w, int _h, Velocity2 _v) : velocity(_v), rect(_x,_y,_w,_h)
 {
 	std::cout << "GameObject created dimensions: \n W: " << rect.w << "H: " << rect.h << std::endl;
 }

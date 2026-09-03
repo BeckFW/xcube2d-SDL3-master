@@ -14,32 +14,31 @@ public:
 	virtual void update() = 0;
 
 	// getters (allow access to private vars for children with no write access)
-	int getX() const { return x; }
-	int getY() const { return y; }
-	int getW() const { return w; }
-	int getH() const { return h; }
+	int getX() const { return rect.x; }
+	int getY() const { return rect.y; }
+	int getW() const { return rect.w; }
+	int getH() const { return rect.h; }
 	Velocity2 getVelocity() const { return velocity; }
 	Rect getRect() const { return rect; }
 
 
 	// setters
 	// update xPos and Rect pos to keep in sync
-	// X/Y value likely redundant could just be stored in Rect
-	void setX(int _x) { x = _x; rect.x = _x; }
-	void setY(int _y) { y = _y; rect.y = _y; }
-	void setW(int _w) { w = _w; rect.w = _w; }
-	void setH(int _h) { h = _h; rect.h = _h; }
+	void setX(int _x) { rect.x = _x; }
+	void setY(int _y) { rect.y = _y; }
+	void setW(int _w) { rect.w = _w; }
+	void setH(int _h) { rect.h = _h; }
 	void setVelocity(int _dx, int _dy) { velocity = { _dx, _dy }; }
 	void setDX(int _dx) { velocity.dx = _dx; }
 	void setDY(int _dy) { velocity.dy = _dy; }
 
 	// helpers
-	Point2 getCenter() const { return { x + w / 2, y + h / 2 }; }
-	void moveUp() { y += velocity.dy; }
-	void moveDown() { y -= velocity.dy; }
+	Point2 getCenter() const { return { rect.x + rect.w / 2, rect.y + rect.h / 2 }; }
+	void moveUp() { rect.y += velocity.dy; }
+	void moveDown() { rect.y -= velocity.dy; }
 	
 private:
-	int x, y, w, h;
+	//int x, y, w, h;
 	Velocity2 velocity;
 	Rect rect;
 };
