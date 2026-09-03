@@ -108,6 +108,11 @@ private:
 	TTF_Font* bigFont;
 	TTF_Font* font;
 	TTF_Font* smallFont;
+	MIX_Audio* edgeSine;
+	MIX_Audio* playerSine;
+	MIX_Audio* npcSine;
+	MIX_Audio* outSine;
+	MIX_Audio* outSineFM;
 
 	// Methods
 	void update();
@@ -119,6 +124,8 @@ private:
 	void render();
 	void renderUI();
 	void gameOverUI();
+	void generateSoundEffects();
+	void playGeneratedSound(MIX_Audio* _sound);
 
 public:
 	Pong(int _maxRounds);

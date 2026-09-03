@@ -27,6 +27,9 @@ Pong::Pong(int _maxRounds) :
 	font = ResourceManager::loadFont("res/fonts/arial.ttf", 42); 
 	smallFont = ResourceManager::loadFont("res/fonts/arial.ttf", 22);
 
+	// Create sound effects
+	generateSoundEffects();
+
 	gfx->setVerticalSync(true);
 	gfx->setWindowTitle("PONG Demo");
 }
@@ -93,18 +96,21 @@ void Pong::checkCollision() {
 	if (ball.getRect().intersects(player.getRect())) {
 		ball.reverseXVel();
 		playerHits++;
-		// play sound
+		playGeneratedSound(playerSine);
 	}
 	
 	if (ball.getRect().intersects(npc.getRect())) {
 		ball.reverseXVel();
 		npcHits++;
+		playGeneratedSound(npcSine);
 	}
 
 	// give npc a point if ball hits left edge
 	if ((ball.getX()) <= 0) {
 		npcScore++;
 		round++;
+		playGeneratedSound(outSine);
+		playGeneratedSound(outSineFM);
 		gameOver = true;
 		reset();
 	}
@@ -113,6 +119,8 @@ void Pong::checkCollision() {
 	if ((ball.getX() + ball.getW()) >= window.w) {
 		playerScore++;
 		round++;
+		playGeneratedSound(outSine);
+		playGeneratedSound(outSineFM);
 		gameOver = true;
 		reset();
 	}
@@ -123,6 +131,7 @@ void Pong::checkPositions() {
 	if ((ball.getY() <= 0) || ((ball.getY() + ball.getW()) >= window.h)) {
 		// bounce away
 		ball.reverseYVel();
+		playGeneratedSound(edgeSine);
 	}
 
 	// stop npc from leaving the screen
@@ -199,8 +208,6 @@ void Pong::renderUI() {
 }
 
 void Pong::gameOverUI() {
-
-	// inefficient - better approach to calculate text sizes and positions once and store as member var
 	// variables for text
 	std::string text = "Game Over";
 	std::string winText = "You won with " + std::to_string(playerScore) + " points!";
@@ -244,6 +251,26 @@ void Pong::gameOverUI() {
 	gfx->useFont(smallFont);
 	TTF_GetStringSize(smallFont, input.c_str(), input.length(), &textW, &textH);
 	gfx->drawText(input, (window.w - textW) / 2, 450);
+}
+
+void Pong::generateSoundEffects() {
+	// Create simple sounds using sine waves
+	edgeSine = MIX_CreateSineWaveAudio(sfx->getMixer(), 900, 0.09f, 5);
+	playerSine = MIX_CreateSineWaveAudio(sfx->getMixer(), 1500, 0.09f, 5);
+	npcSine = MIX_CreateSineWaveAudio(sfx->getMixer(), 1200, 0.09f, 5);
+	// Two sine waves for an FM effect
+	outSine = MIX_CreateSineWaveAudio(sfx->getMixer(), 600, 0.03f, 100);
+	outSineFM = MIX_CreateSineWaveAudio(sfx->getMixer(), 900, 0.03f, 100);
+}
+
+void Pong::playGeneratedSound(MIX_Audio* _sound) {
+	// Play the provided sound through AudioEngine
+	if (!_sound) {
+		std::cout << "Couldn't create sine wave " << SDL_GetError() << std::endl;
+	}
+	else {
+		sfx->playSound(_sound);
+	}
 }
 
 
