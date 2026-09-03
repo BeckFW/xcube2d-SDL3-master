@@ -23,7 +23,6 @@ public:
 
 
 	// setters
-	// update xPos and Rect pos to keep in sync
 	void setX(int _x) { rect.x = _x; }
 	void setY(int _y) { rect.y = _y; }
 	void setW(int _w) { rect.w = _w; }
@@ -38,7 +37,6 @@ public:
 	void moveDown() { rect.y -= velocity.dy; }
 	
 private:
-	//int x, y, w, h;
 	Velocity2 velocity;
 	Rect rect;
 };
