@@ -44,7 +44,7 @@ endif()
 
 # load user source and header files
 file(GLOB_RECURSE SOURCE_FILES "src/*.h" "src/*.cpp")
-add_executable(${PROJECT_NAME} WIN32 ${SOURCE_FILES})
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
 # make assets directory in build
 #file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/assets)
@@ -53,6 +53,9 @@ add_executable(${PROJECT_NAME} WIN32 ${SOURCE_FILES})
 #file(COPY
 #        "assets/assetName.png"
 #        DESTINATION ${CMAKE_BINARY_DIR}/assets)
+
+# Copy /res into build directory so that the project has access
+file(COPY ${CMAKE_SOURCE_DIR}/res DESTINATION ${CMAKE_BINARY_DIR})
 
 # CMake config targets carry their own include dirs and link requirements,
 # so there's no need for a separate include_directories() call anymore.
@@ -64,3 +67,6 @@ target_link_libraries(${PROJECT_NAME}
         SDL3_image::SDL3_image
         SDL3_mixer::SDL3_mixer
         SDL3_ttf::SDL3_ttf)
+
+# Change VS startup project to MyGame
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT MyGame)
