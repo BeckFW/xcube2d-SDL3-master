@@ -114,7 +114,6 @@ private:
 	// Methods
 	void update();
 	void checkCollision();
-	void checkPositions();
 	void reset();
 	void resetGame();
 	void handleKeyEvents();

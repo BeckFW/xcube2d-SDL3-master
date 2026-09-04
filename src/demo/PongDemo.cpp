@@ -13,7 +13,7 @@ Pong::Pong(int _maxRounds) :
 	npc(window.w - 20, window.h / 2, 20, 50, ball),
 	// Game State
 	gameOver(false),
-	round(0),
+	round(0), 
 	maxRounds(_maxRounds),
 	// Scores
 	playerScore(0), 
@@ -40,7 +40,6 @@ Pong::~Pong() {
 }
 
 void Pong::reset() {
-	gameOver = false;
 	// position ball
 	ball.setX(window.w / 2);
 	ball.setY(window.h / 2); 
@@ -59,7 +58,6 @@ void Pong::resetGame() {
 void Pong::update() {
 
 	if (round < maxRounds) {
-		if (!gameOver) {
 			// movement
 			handleKeyEvents(); // trigger player movements with xcube events method
 			player.update(); // update player
@@ -68,13 +66,8 @@ void Pong::update() {
 
 			// collisions
 			checkCollision();
-
-			// check for points and ensure positions are valid
-			checkPositions();
-		}
 	}
 	else {
-		gameOver = true;
 		// Game Over screen is displayed
 		// Wait for user input
 		if (eventSystem->isPressed(Key::W)) {
@@ -111,7 +104,6 @@ void Pong::checkCollision() {
 		round++;
 		playGeneratedSound(outSine);
 		playGeneratedSound(outSineFM);
-		gameOver = true;
 		reset();
 	}
 
@@ -121,12 +113,9 @@ void Pong::checkCollision() {
 		round++;
 		playGeneratedSound(outSine);
 		playGeneratedSound(outSineFM);
-		gameOver = true;
 		reset();
 	}
-}
 
-void Pong::checkPositions() {
 	// has the ball hit the top or bottom of the screen
 	if ((ball.getY() <= 0) || ((ball.getY() + ball.getW()) >= window.h)) {
 		// bounce away
@@ -136,7 +125,7 @@ void Pong::checkPositions() {
 
 	// stop npc from leaving the screen
 	if (npc.getY() < 0) npc.setY(0);
-	if ((npc.getY() + npc.getRect().h) > window.h ) npc.setY(window.h - npc.getRect().h);
+	if ((npc.getY() + npc.getRect().h) > window.h) npc.setY(window.h - npc.getRect().h);
 }
 
 void Pong::render() {
@@ -150,10 +139,6 @@ void Pong::render() {
 
 	// draw npc
 	gfx->drawRect(npc.getRect());
-
-	// draw collision rect
-	gfx->setDrawColor(SDL_COLOR_WHITE);
-	gfx->drawRect(ball.getRect());
 }
 
 // handle input (move player)
@@ -175,7 +160,7 @@ void Pong::handleKeyEvents() {
 
 // draw the UI
 void Pong::renderUI() {
-	if (!gameOver) {
+	if (round < maxRounds) {
 		// create strings for drawText fn
 		std::string scoreStr = std::to_string(playerScore);
 		std::string pHitsStr = "Hits: " + std::to_string(playerHits);
@@ -183,8 +168,6 @@ void Pong::renderUI() {
 		std::string npcHitsStr = "Hits: " + std::to_string(npcHits);
 
 		gfx->setDrawColor(SDL_COLOR_AQUA);
-
-		// magic numbers everywhere :( 
 
 		int textW, textH;
 		int padding = 25; 
@@ -274,14 +257,12 @@ void Pong::playGeneratedSound(MIX_Audio* _sound) {
 }
 
 
-GameObject::GameObject(int _x, int _y, int _w, int _h, Velocity2 _v) : velocity(_v), rect(_x,_y,_w,_h)
-{
+GameObject::GameObject(int _x, int _y, int _w, int _h, Velocity2 _v) : velocity(_v), rect(_x,_y,_w,_h) {
 	std::cout << "GameObject created dimensions: \n W: " << rect.w << "H: " << rect.h << std::endl;
 }
 
 
-Paddle::Paddle(int _x, int _y, int _w, int _h) : GameObject(_x, _y, _w, _h)
-{
+Paddle::Paddle(int _x, int _y, int _w, int _h) : GameObject(_x, _y, _w, _h) {
 	std::cout << "Paddle created" << std::endl;
 }
 
@@ -290,7 +271,7 @@ Player::Player(int _x, int _y, int _w, int _h) : Paddle(_x, _y, _w, _h) {
 }
 
 void Player::update() {
-
+	// update player
 }
 
 NPC::NPC(int _x, int _y, int _w, int _h, GameObject& _target) : Paddle(_x, _y, _w, _h), target(_target) {
@@ -314,9 +295,6 @@ void NPC::update() {
 	} 
 	// update the ball's last position
 	targetTracker = target.getX();
-
-	// random movement between the boundaries
-	// hold reference to window? 
 }
 
 Ball::Ball(int _x, int _y, Velocity2 _v, int _r) : GameObject(_x, _y, (_r*2), (_r*2), _v), r(_r) {
