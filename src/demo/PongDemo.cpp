@@ -8,9 +8,9 @@ Pong::Pong(int _maxRounds) :
 	// Get window to position objects
 	window(gfx->getCurrentWindowSize()),
 	// Game Objects
-	player(0, window.h / 2, 20, 50),
-	ball(window.w / 2, window.h / 2, { 5,5 }, 10), 
-	npc(window.w - 20, window.h / 2, 20, 50, ball),
+	player(0, window.h / 2, 30, 60, gameColors.playerPrimary, gameColors.playerSecondary),
+	ball(window.w / 2, window.h / 2, { 5,5 }, 10, gameColors.ballPrimary, gameColors.ballSecondary), 
+	npc(window.w - 30, window.h / 2, 30, 60, &ball, gameColors.npcPrimary, gameColors.npcSecondary),
 	// Game State
 	gameOver(false),
 	round(0), 
@@ -20,7 +20,6 @@ Pong::Pong(int _maxRounds) :
 	npcScore(0), 
 	playerHits(0), 
 	npcHits(0)
-
 {
 	// Set font from available resources in res folder
 	bigFont = ResourceManager::loadFont("res/fonts/arial.ttf", 72);
@@ -29,6 +28,11 @@ Pong::Pong(int _maxRounds) :
 
 	// Create sound effects
 	generateSoundEffects();
+
+	// add objects to vector
+	gameObjects.push_back(&player);
+	gameObjects.push_back(&ball);
+	gameObjects.push_back(&npc);
 
 	gfx->setVerticalSync(true);
 	gfx->setWindowTitle("PONG Demo");
@@ -58,13 +62,13 @@ void Pong::resetGame() {
 void Pong::update() {
 
 	if (round < maxRounds) {
-			// movement
+			// listen for player input
 			handleKeyEvents(); // trigger player movements with xcube events method
-			player.update(); // update player
-			ball.update(); // move the ball
-			npc.update(); // move the npc towards the ball
 
-			// collisions
+			// update all game objects
+			for (GameObject* object : gameObjects) object->update();
+
+			// check collisions and give points
 			checkCollision();
 	}
 	else {
@@ -129,16 +133,8 @@ void Pong::checkCollision() {
 }
 
 void Pong::render() {
-	// draw ball
-	gfx->setDrawColor(SDL_COLOR_BLUE);
-	gfx->drawCircle(ball.getCenter(), ball.getR());
-
-	// draw player
-	gfx->setDrawColor(SDL_COLOR_RED);
-	gfx->drawRect(player.getRect()); 
-
-	// draw npc
-	gfx->drawRect(npc.getRect());
+	// draw all game objects
+	for (GameObject* object : gameObjects) object->render(*gfx);
 }
 
 // handle input (move player)
@@ -257,16 +253,24 @@ void Pong::playGeneratedSound(MIX_Audio* _sound) {
 }
 
 
-GameObject::GameObject(int _x, int _y, int _w, int _h, Velocity2 _v) : velocity(_v), rect(_x,_y,_w,_h) {
+GameObject::GameObject(int _x, int _y, int _w, int _h, SDL_Color _pColor, SDL_Color _sColor, Velocity2 _v) : velocity(_v), rect(_x,_y,_w,_h), primaryColor(_pColor), secondaryColor(_sColor) {
 	std::cout << "GameObject created dimensions: \n W: " << rect.w << "H: " << rect.h << std::endl;
 }
 
 
-Paddle::Paddle(int _x, int _y, int _w, int _h) : GameObject(_x, _y, _w, _h) {
+Paddle::Paddle(int _x, int _y, int _w, int _h, SDL_Color _pColor, SDL_Color _sColor) : GameObject(_x, _y, _w, _h, _pColor, _sColor) {
 	std::cout << "Paddle created" << std::endl;
 }
 
-Player::Player(int _x, int _y, int _w, int _h) : Paddle(_x, _y, _w, _h) {
+void Paddle::render(GraphicsEngine& _gfx) {
+	SDL_Rect tempRect = { getRect().x, getRect().y, getRect().w, getRect().h };
+	_gfx.setDrawColor(getPrimaryColor());
+	_gfx.fillRect(&tempRect);
+	_gfx.setDrawColor(getSecondaryColor());
+	_gfx.drawRect(getRect());
+}
+
+Player::Player(int _x, int _y, int _w, int _h, SDL_Color _pColor, SDL_Color _sColor) : Paddle(_x, _y, _w, _h, _pColor, _sColor) {
 	std::cout << "Player Created" << std::endl;
 }
 
@@ -274,7 +278,7 @@ void Player::update() {
 	// update player
 }
 
-NPC::NPC(int _x, int _y, int _w, int _h, GameObject& _target) : Paddle(_x, _y, _w, _h), target(_target) {
+NPC::NPC(int _x, int _y, int _w, int _h, GameObject* _target, SDL_Color _pColor, SDL_Color _sColor) : Paddle(_x, _y, _w, _h, _pColor, _sColor), target(_target) {
 	std::cout << "NPC Created" << std::endl;
 }
 
@@ -284,20 +288,20 @@ void NPC::update() {
 	int npcCenter = getRect().y + (getRect().h / 2);
 	
 	// check against last update to see if the ball is approaching
-	if (target.getX() > targetTracker) {
+	if (target->getX() > targetTracker) {
 		// move towards the target
-		if (npcCenter < target.getY() - deadzone) {
+		if (npcCenter < target->getY() - deadzone) {
 			setY(getY() + getVelocity().dy);
 		}
-		else if (npcCenter > target.getY() + deadzone) {
+		else if (npcCenter > target->getY() + deadzone) {
 			setY(getY() - getVelocity().dy);
 		}
 	} 
 	// update the ball's last position
-	targetTracker = target.getX();
+	targetTracker = target->getX();
 }
 
-Ball::Ball(int _x, int _y, Velocity2 _v, int _r) : GameObject(_x, _y, (_r*2), (_r*2), _v), r(_r) {
+Ball::Ball(int _x, int _y, Velocity2 _v, int _r, SDL_Color _pColor, SDL_Color _sColor) : GameObject(_x, _y, (_r*2), (_r*2), _pColor, _sColor, _v), r(_r) {
 	std::cout << "Ball Created dimensions: \n W: " << getRect().w << " H: " << getRect().h << std::endl;
 }
 
@@ -305,6 +309,12 @@ void Ball::update() {
 	// move the ball
 	setX(getX() + getVelocity().dx);
 	setY(getY() + getVelocity().dy); 
+}
+
+void Ball::render(GraphicsEngine& _gfx) {
+	_gfx.setDrawColor(getPrimaryColor());
+	_gfx.drawCircle(getCenter(),getR());
+	// TODO - Fill circle
 }
 
 void Ball::reverseXVel() {

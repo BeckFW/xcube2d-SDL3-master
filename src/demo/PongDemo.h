@@ -6,12 +6,24 @@
 // 2 Point struct to hold velocity info
 struct Velocity2 { int dx; int dy; };
 
+// Colors that will be used in the game
+struct Colors {
+	SDL_Color playerPrimary = SDL_COLOR_VIOLET;
+	SDL_Color playerSecondary = SDL_COLOR_WHITE;
+	SDL_Color npcPrimary = SDL_COLOR_AQUA;
+	SDL_Color npcSecondary = SDL_COLOR_WHITE;
+	SDL_Color ballPrimary = SDL_COLOR_WHITE;
+	SDL_Color ballSecondary = SDL_COLOR_BLUE;
+};
+
 class GameObject {
 public:
-	GameObject(int _x, int _y, int _w, int _h, Velocity2 _v = {5, 5});
+	GameObject(int _x, int _y, int _w, int _h, SDL_Color _pColor, SDL_Color _sColor, Velocity2 _v = { 5, 5 });
 
 	// overridable update function
 	virtual void update() = 0;
+	// render function with reference to gfx engine
+	virtual void render(GraphicsEngine& _gfx) = 0;
 
 	// getters (allow access to private vars for children with no write access)
 	int getX() const { return rect.x; }
@@ -20,7 +32,8 @@ public:
 	int getH() const { return rect.h; }
 	Velocity2 getVelocity() const { return velocity; }
 	Rect getRect() const { return rect; }
-
+	SDL_Color getPrimaryColor() const { return primaryColor; }
+	SDL_Color getSecondaryColor() const { return secondaryColor; }
 
 	// setters
 	void setX(int _x) { rect.x = _x; }
@@ -30,6 +43,9 @@ public:
 	void setVelocity(int _dx, int _dy) { velocity = { _dx, _dy }; }
 	void setDX(int _dx) { velocity.dx = _dx; }
 	void setDY(int _dy) { velocity.dy = _dy; }
+	void setPrimaryColor(SDL_Color _c) { primaryColor = _c; }
+	void setSecondaryColor(SDL_Color _c) { secondaryColor = _c; }
+
 
 	// helpers
 	Point2 getCenter() const { return { rect.x + rect.w / 2, rect.y + rect.h / 2 }; }
@@ -39,36 +55,40 @@ public:
 private:
 	Velocity2 velocity;
 	Rect rect;
+	SDL_Color primaryColor;
+	SDL_Color secondaryColor;
 };
 
 class Paddle : public GameObject {
 public:
-	Paddle(int _x, int _y, int _w, int _h);
+	Paddle(int _x, int _y, int _w, int _h, SDL_Color _pColor, SDL_Color _sColor);
+	void render(GraphicsEngine& _gfx) override;
 };
 
 class Player : public Paddle {
 public:
-	Player(int _x, int _y, int _w, int _h);
+	Player(int _x, int _y, int _w, int _h, SDL_Color _pColor, SDL_Color _sColor);
 	void update() override;
 };
 
 class NPC : public Paddle {
 public: 
-	NPC(int _x, int _y, int _w, int _h, GameObject& _target );
+	NPC(int _x, int _y, int _w, int _h, GameObject* _target, SDL_Color _pColor, SDL_Color _sColor );
 	void update() override; 
 
 	int targetTracker = 0; 
 
 private:
-	GameObject& target;
+	GameObject* target;
 	// Deadzone - stop moving when near the target so it's not followed too closely
 	int deadzone = 40;
 };
 
 class Ball : public GameObject {
 public:
-	Ball(int _x, int _y, Velocity2 _v, int _r);
+	Ball(int _x, int _y, Velocity2 _v, int _r, SDL_Color _pColor, SDL_Color _sColor);
 	void update() override;
+	void render(GraphicsEngine& _gfx) override;
 
 	// getters
 	float getR() const { return r; }
@@ -92,10 +112,13 @@ private:
 
 	Dimension2i window; // declared first so it is constructed in correct order for access by game objects
 
+	Colors gameColors;
+
 	// Game objects
 	Player player;
 	NPC npc;
 	Ball ball;
+	std::vector<GameObject*> gameObjects;
 
 	// Game state/scores
 	bool gameOver;
