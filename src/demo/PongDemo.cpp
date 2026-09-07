@@ -39,7 +39,7 @@ Pong::Pong(int _maxRounds) :
 }
 
 Pong::~Pong() {
-	// Deconstructor
+	// Destructor
 	std::cout << "PONG closing" << std::endl; 
 }
 
@@ -142,14 +142,14 @@ void Pong::handleKeyEvents() {
 	if (eventSystem->isPressed(Key::W)) {
 
 		if (player.getY() > 0) {
-			player.setY(player.getY() - player.getVelocity().dy);
+			player.moveUp();
 		}
 	}
 
 	if (eventSystem->isPressed(Key::S)) {
 	
 		if ((player.getY() + player.getH()) < window.h) {
-			player.setY(player.getY() + player.getVelocity().dy);
+			player.moveDown();
 		}
 	}
 }
@@ -171,7 +171,7 @@ void Pong::renderUI() {
 		// draw main score
 		gfx->useFont(bigFont);
 		gfx->drawText(scoreStr, padding, 25);
-		TTF_GetStringSize(bigFont, npcScoreStr.c_str(), scoreStr.length(), &textW, &textH);
+		TTF_GetStringSize(bigFont, npcScoreStr.c_str(), npcScoreStr.length(), &textW, &textH);
 		gfx->drawText(npcScoreStr, window.w - (textW + padding), 25);
 
 		// draw number of hits
@@ -190,7 +190,7 @@ void Pong::gameOverUI() {
 	// variables for text
 	std::string text = "Game Over";
 	std::string winText = "You won with " + std::to_string(playerScore) + " points!";
-	std::string looseText = "You lost. Your opponent scored " + std::to_string(npcScore) + " points!";
+	std::string loseText = "You lost. Your opponent scored " + std::to_string(npcScore) + " points!";
 	std::string hitText = "Between you, there were " + std::to_string(playerHits + npcHits) + " hits!";
 	std::string playAgain = "Would you like to play again?";
 	std::string input = "Yes -> W | No -> S";
@@ -216,8 +216,8 @@ void Pong::gameOverUI() {
 		gfx->drawText(winText, (window.w - textW) / 2, 150);
 	}
 	else {
-		TTF_GetStringSize(font, looseText.c_str(), looseText.length(), &textW, &textH);
-		gfx->drawText(looseText, (window.w - textW) / 2, 150);
+		TTF_GetStringSize(font, loseText.c_str(), loseText.length(), &textW, &textH);
+		gfx->drawText(loseText, (window.w - textW) / 2, 150);
 	}
 
 	gfx->setDrawColor(SDL_COLOR_WHITE);
@@ -288,7 +288,7 @@ void NPC::update() {
 	int npcCenter = getRect().y + (getRect().h / 2);
 	
 	// check against last update to see if the ball is approaching
-	if (target->getX() > targetTracker) {
+	if (target->getX() > targetPreviousLocation) {
 		// move towards the target
 		if (npcCenter < target->getY() - deadzone) {
 			setY(getY() + getVelocity().dy);
@@ -298,7 +298,7 @@ void NPC::update() {
 		}
 	} 
 	// update the ball's last position
-	targetTracker = target->getX();
+	targetPreviousLocation = target->getX();
 }
 
 Ball::Ball(int _x, int _y, Velocity2 _v, int _r, SDL_Color _pColor, SDL_Color _sColor) : GameObject(_x, _y, (_r*2), (_r*2), _pColor, _sColor, _v), r(_r) {

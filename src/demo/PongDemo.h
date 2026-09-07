@@ -18,7 +18,10 @@ struct Colors {
 
 class GameObject {
 public:
+	// Constructor
 	GameObject(int _x, int _y, int _w, int _h, SDL_Color _pColor, SDL_Color _sColor, Velocity2 _v = { 5, 5 });
+	// Destructor
+	virtual ~GameObject() = default;
 
 	// overridable update function
 	virtual void update() = 0;
@@ -49,8 +52,8 @@ public:
 
 	// helpers
 	Point2 getCenter() const { return { rect.x + rect.w / 2, rect.y + rect.h / 2 }; }
-	void moveUp() { rect.y += velocity.dy; }
-	void moveDown() { rect.y -= velocity.dy; }
+	void moveUp() { rect.y -= velocity.dy; }
+	void moveDown() { rect.y += velocity.dy; }
 	
 private:
 	Velocity2 velocity;
@@ -76,12 +79,13 @@ public:
 	NPC(int _x, int _y, int _w, int _h, GameObject* _target, SDL_Color _pColor, SDL_Color _sColor );
 	void update() override; 
 
-	int targetTracker = 0; 
-
 private:
 	GameObject* target;
 	// Deadzone - stop moving when near the target so it's not followed too closely
 	int deadzone = 40;
+	// Previous Location - the last known location of the target being tracked (the ball)
+	int targetPreviousLocation = 0;
+
 };
 
 class Ball : public GameObject {
@@ -91,7 +95,7 @@ public:
 	void render(GraphicsEngine& _gfx) override;
 
 	// getters
-	float getR() const { return r; }
+	int getR() const { return r; }
 	Point2 getCenter() const { return Point2(getX() + getR(), getY() + getR()); }
 	
 	// setters
@@ -102,7 +106,7 @@ public:
 	void reverseYVel(); 
 
 private:
-	float r;
+	int r;
 };
 
 // Game Class
@@ -116,8 +120,9 @@ private:
 
 	// Game objects
 	Player player;
-	NPC npc;
 	Ball ball;
+	NPC npc;
+
 	std::vector<GameObject*> gameObjects;
 
 	// Game state/scores
